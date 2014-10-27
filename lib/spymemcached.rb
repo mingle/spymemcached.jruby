@@ -32,6 +32,9 @@ class Spymemcached
   def initialize(servers=['localhost:11211'], options={})
     @servers, @options = Array(servers).join(','), DEFAULT_OPTIONS.merge(options)
     @client = SpymemcachedAdapter.new(@servers, @options)
+    @namespace = if @options[:namespace]
+      @options[:namespace].is_a?(Proc) ? @options[:namespace] : lambda { @options[:namespace] }
+    end
     at_exit { shutdown }
   end
 
@@ -124,12 +127,17 @@ class Spymemcached
   end
 
   def ns(key)
-    @options[:namespace] ? "#{@options[:namespace]}:#{key}" : key
+    return key unless namespace
+     "#{namespace.call}:#{key}"
   end
 
   def unns(k)
-    return k unless @options[:namespace]
-    @ns_size ||= @options[:namespace].size + 1
+    return k unless namespace
+    @ns_size ||= namespace.call.size + 1
     k[@ns_size..-1]
+  end
+
+  def namespace
+    @namespace
   end
 end

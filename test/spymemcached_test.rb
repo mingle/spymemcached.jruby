@@ -132,6 +132,14 @@ class SpymemcachedTest < Test::Unit::TestCase
     assert_nil @ns_client['key2']
   end
 
+  def test_lambda_as_namespace
+    @ns_client = Spymemcached.new('localhost:11211', :namespace => lambda { 'ns' })
+    @ns_client['key'] = 'value'
+    assert_equal 'value', @client['ns:key']
+
+    assert_equal({'key' => "value"}, @ns_client.get_multi('key'))
+  end
+
   def test_stats
     stats = @client.stats
     assert_equal(Hash, stats.class)
