@@ -151,19 +151,19 @@ class SpymemcachedTest < Test::Unit::TestCase
     stats = @client.stats
     assert_equal(Hash, stats.class)
     assert_equal(1, stats.size)
-    assert_match /localhost/, stats.keys.first
-    assert_match /\:11211/, stats.keys.first
-    assert_equal Hash, stats.values.first.class
+    assert_match(/localhost/, stats.keys.first)
+    assert_match(/\:11211/, stats.keys.first)
+    assert_equal(Hash, stats.values.first.class)
     assert stats.values.first.size > 5
-    assert_match @client.version.values.first, stats.values.first['version']
+    assert_match(@client.version.values.first, stats.values.first['version'])
   end
 
   def test_version
     v = @client.version
     assert_equal(Hash, v.class)
     assert_equal(1, v.size)
-    assert_match /localhost/, v.keys.first
-    assert_match /\:11211/, v.keys.first
-    assert_match /\d\.\d+\.\d+/, v.values.first
+    assert_match(/localhost/, v.keys.first)
+    assert_match(/\:11211/, v.keys.first)
+    assert_match(/\d\.\d+\.\d+/, v.values.first)
   end
 end

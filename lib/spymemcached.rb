@@ -6,7 +6,8 @@ require 'spymemcached_adapter'
 # Memcached client Spymemcached JRuby extension
 #
 class Spymemcached
-  class TimeoutError < StandardError; end
+  class Error < StandardError; end
+  class TimeoutError < Error; end
 
   # default options for client
   DEFAULT_OPTIONS = {

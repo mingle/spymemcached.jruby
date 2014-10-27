@@ -1,6 +1,5 @@
 import net.spy.memcached.*;
 import net.spy.memcached.internal.CheckedOperationTimeoutException;
-import net.spy.memcached.internal.OperationFuture;
 import net.spy.memcached.protocol.binary.BinaryOperationFactory;
 import net.spy.memcached.transcoders.SerializingTranscoder;
 import org.jruby.*;
@@ -18,15 +17,20 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.SocketAddress;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Created by Xiao Li <swing1979@gmail.com> on 10/24/14.
  */
 @JRubyClass(name = "SpymemcachedAdapter")
 public class SpymemcachedAdapter extends RubyObject {
+
+    private Long timeout;
 
     public static class IRubyObjectTranscoder extends SerializingTranscoder {
         private Ruby ruby;
@@ -78,151 +82,85 @@ public class SpymemcachedAdapter extends RubyObject {
 
     @JRubyMethod(required = 2)
     public IRubyObject initialize(IRubyObject servers, IRubyObject opts) {
-        client = initClient(servers.asJavaString(), opts.convertToHash());
+        RubyHash hash = opts.convertToHash();
+        timeout = getTimeout(hash);
+        client = initClient(servers.asJavaString(), hash);
         return ruby.getNil();
     }
 
     @JRubyMethod(required = 1)
     public IRubyObject get(IRubyObject key) {
-        try {
-            return (IRubyObject) client.get(key.asJavaString());
-        } catch (OperationTimeoutException e) {
-            throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-        }
+        return obj(client.asyncGet(key.asJavaString()));
     }
 
     @JRubyMethod(required = 1)
     public IRubyObject get_multi(IRubyObject keys) {
-        try {
-            return obj(client.getBulk(Arrays.asList((String[]) keys.convertToArray().toArray(new String[0]))));
-        } catch (OperationTimeoutException e) {
-            throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-        }
+        List<String> list = Arrays.asList((String[]) keys.convertToArray().toArray(new String[0]));
+        return obj(client.asyncGetBulk(list));
     }
 
     @JRubyMethod(required = 3)
     public IRubyObject add(IRubyObject key, IRubyObject value, IRubyObject ttl) {
-        try {
-            return bool(client.add(key.asJavaString(), integer(ttl), preprocess(value)));
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof CheckedOperationTimeoutException) {
-                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-            }
-            throw e;
-        }
+        return obj(client.add(key.asJavaString(), integer(ttl), preprocess(value)));
     }
 
     @JRubyMethod(required = 3)
     public IRubyObject set(IRubyObject key, IRubyObject value, IRubyObject ttl) {
-        try {
-            return bool(client.set(key.asJavaString(), integer(ttl), preprocess(value)));
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof CheckedOperationTimeoutException) {
-                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-            }
-            throw e;
-        }
+        return obj(client.set(key.asJavaString(), integer(ttl), preprocess(value)));
     }
 
     @JRubyMethod(required = 3)
     public IRubyObject replace(IRubyObject key, IRubyObject value, IRubyObject ttl) {
-        try {
-            return bool(client.replace(key.asJavaString(), integer(ttl), preprocess(value)));
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof CheckedOperationTimeoutException) {
-                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-            }
-            throw e;
-        }
+        return obj(client.replace(key.asJavaString(), integer(ttl), preprocess(value)));
     }
 
     @JRubyMethod(required = 1)
     public IRubyObject delete(IRubyObject key) {
-        try {
-            return bool(client.delete(key.asJavaString()));
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof CheckedOperationTimeoutException) {
-                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-            }
-            throw e;
-        }
+        return obj(client.delete(key.asJavaString()));
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject append(IRubyObject key, IRubyObject value) {
-        try {
-            return bool(client.append(key.asJavaString(), preprocess(value)));
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof CheckedOperationTimeoutException) {
-                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-            }
-            throw e;
-        }
+        return obj(client.append(key.asJavaString(), preprocess(value)));
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject prepend(IRubyObject key, IRubyObject value) {
-        try {
-            return bool(client.prepend(key.asJavaString(), preprocess(value)));
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof CheckedOperationTimeoutException) {
-                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-            }
-            throw e;
-        }
+        return obj(client.prepend(key.asJavaString(), preprocess(value)));
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject cas(ThreadContext tc, IRubyObject key, IRubyObject ttl, Block block) {
         String k = key.asJavaString();
-        try {
-            CASValue<Object> casValue = client.gets(k);
-            if (casValue == null) {
-                return ruby.getNil();
-            }
-            long casId = casValue.getCas();
-            IRubyObject value = block.call(tc);
-            CASResponse response = client.cas(k, casId, integer(ttl), preprocess(value));
-            if (response == CASResponse.OK) {
-                return ruby.getTrue();
-            } else if (response == CASResponse.NOT_FOUND) {
-                return ruby.getNil();
-            } else {
-                return ruby.getFalse();
-            }
-        } catch (OperationTimeoutException e) {
-            throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
+        CASValue<Object> casValue = client.gets(k);
+        if (casValue == null) {
+            return ruby.getNil();
+        }
+        long casId = casValue.getCas();
+        IRubyObject value = block.call(tc);
+        CASResponse response = (CASResponse) futureGet(client.asyncCAS(k, casId, integer(ttl), preprocess(value)));
+        if (response == CASResponse.OK) {
+            return ruby.getTrue();
+        } else if (response == CASResponse.NOT_FOUND) {
+            return ruby.getNil();
+        } else {
+            return ruby.getFalse();
         }
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject incr(IRubyObject key, IRubyObject by) {
-        try {
-            return obj(client.incr(key.asJavaString(), integer(by)));
-        } catch (OperationTimeoutException e) {
-            throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-        }
+        return obj(client.asyncIncr(key.asJavaString(), integer(by)));
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject decr(IRubyObject key, IRubyObject by) {
-        try {
-            return obj(client.decr(key.asJavaString(), integer(by)));
-        } catch (OperationTimeoutException e) {
-            throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-        }
+        return obj(client.asyncDecr(key.asJavaString(), integer(by)));
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject touch(IRubyObject key, IRubyObject ttl) {
-        try {
-            return bool(client.touch(key.asJavaString(), integer(ttl)));
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof CheckedOperationTimeoutException) {
-                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-            }
-            throw e;
-        }
+        return obj(client.touch(key.asJavaString(), integer(ttl)));
     }
 
     @JRubyMethod
@@ -250,14 +188,7 @@ public class SpymemcachedAdapter extends RubyObject {
 
     @JRubyMethod
     public IRubyObject flush_all() {
-        try {
-            return bool(client.flush());
-        } catch (RuntimeException e) {
-            if (e.getCause() instanceof CheckedOperationTimeoutException) {
-                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
-            }
-            throw e;
-        }
+        return obj(client.flush());
     }
 
     @JRubyMethod
@@ -272,7 +203,7 @@ public class SpymemcachedAdapter extends RubyObject {
             builder.setOpFact(new BinaryOperationFactory());
         }
         builder.setTranscoder(new IRubyObjectTranscoder(ruby));
-        builder.setOpTimeout(getTimeout(opts));
+        builder.setOpTimeout(timeout);
         try {
             return new MemcachedClient(builder.build(), AddrUtil.getAddresses(servers));
         } catch (IOException e) {
@@ -282,6 +213,10 @@ public class SpymemcachedAdapter extends RubyObject {
 
     private RubyClass getTimeoutError() {
         return ruby.getClass("Spymemcached").getClass("TimeoutError");
+    }
+
+    private RubyClass getError() {
+        return ruby.getClass("Spymemcached").getClass("Error");
     }
 
     private Long getTimeout(Map opts) {
@@ -298,18 +233,30 @@ public class SpymemcachedAdapter extends RubyObject {
         return (int) obj.convertToInteger().getLongValue();
     }
 
-    private IRubyObject bool(OperationFuture<Boolean> future) {
-        try {
-            return obj(future.get().booleanValue());
-        } catch (InterruptedException e) {
-            throw ruby.newThreadError(e.getLocalizedMessage());
-        } catch (ExecutionException e) {
-            throw ruby.newRuntimeError(e.getLocalizedMessage());
+    private IRubyObject obj(Future future) {
+        Object obj = futureGet(future);
+        if (obj instanceof IRubyObject) {
+            return (IRubyObject) obj;
+        } else {
+            return JavaUtil.convertJavaToRuby(ruby, obj);
         }
     }
 
-    private IRubyObject obj(Object obj) {
-        return JavaUtil.convertJavaToRuby(ruby, obj);
+    private Object futureGet(Future future) {
+        try {
+            return future.get(timeout, TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            throw ruby.newRaiseException(getError(), "InterruptedException waiting for value: " + e.getLocalizedMessage());
+        } catch (ExecutionException e) {
+            throw ruby.newRaiseException(getError(), "ExecutionException waiting for value: " + e.getLocalizedMessage());
+        } catch (TimeoutException e) {
+            throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
+        } catch (RuntimeException e) {
+            if (e.getCause() instanceof CheckedOperationTimeoutException) {
+                throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
+            }
+            throw e;
+        }
     }
 
     private Object preprocess(IRubyObject value) {

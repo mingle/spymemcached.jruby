@@ -53,7 +53,7 @@ class Spymemcached
     private
     def op(name, *args, &block)
       @client.send(name, *args, &block)
-    rescue TimeoutError => e
+    rescue Spymemcached::Error => e
       raise MemCache::MemCacheError, e.message
     end
   end
