@@ -112,6 +112,12 @@ class Spymemcached
     @client.shutdown
   end
 
+  # compatible api
+  def rails23
+    require 'spymemcached/rails23'
+    Rails23.new(self)
+  end
+
   private
   def raw?(opts)
     opts.is_a?(Hash) ? opts[:raw] : opts
