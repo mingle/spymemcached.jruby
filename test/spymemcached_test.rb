@@ -8,30 +8,37 @@ class SpymemcachedTest < Test::Unit::TestCase
 
   def test_expiry
     @client.add('add_key1', 'v1', 0)
-    @client.add('add_key2', 'v2', 1)
+    @client.add('add_key2', 'v2', 2)
 
     @client.set('set_key1', 'v1', 0)
-    @client.set('set_key2', 'v2', 1)
+    @client.set('set_key2', 'v2', 2)
 
     @client.fetch('fetch_key1', 0) { 'v1' }
-    @client.fetch('fetch_key2', 1) { 'v2' }
+    @client.fetch('fetch_key2', 2) { 'v2' }
 
     @client.add('cas_key1', 'v0')
     @client.add('cas_key2', 'v0')
     @client.cas('cas_key1', 0) { 'v1' }
-    @client.cas('cas_key2', 1) { 'v2' }
+    @client.cas('cas_key2', 2) { 'v2' }
 
     @client.add('replace_key1', 'v0')
     @client.add('replace_key2', 'v0')
     @client.replace('replace_key1', 'v1', 0)
-    @client.replace('replace_key2', 'v2', 1)
+    @client.replace('replace_key2', 'v2', 2)
 
-    @client.add('touch_key1', 'v1', 1)
+    @client.add('touch_key1', 'v1', 2)
 
-    sleep 0.5
-    @client.touch('touch_key1')
+    sleep 0.1
 
-    sleep 0.7
+    assert_equal 'v2', @client.get('add_key2')
+    assert_equal 'v2', @client.get('set_key2')
+    assert_equal 'v2', @client.get('fetch_key2')
+    assert_equal 'v2', @client.get('cas_key2')
+    assert_equal 'v2', @client.get('replace_key2')
+
+    assert @client.touch('touch_key1')
+
+    sleep 2
     assert_equal 'v1', @client['touch_key1']
 
     assert_equal 'v1', @client.get('add_key1')
