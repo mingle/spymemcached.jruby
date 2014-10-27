@@ -1,0 +1,7 @@
+* API-compatible wrappers for popular Ruby memcached client libs.
+  * Rails 2.3 support
+  * Rails 3 & 4 support
+  * Dalli
+  * memcached_store gem
+? Spymemcached specific feature exposure
+* Control spymemcached log
