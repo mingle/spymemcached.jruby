@@ -147,6 +147,12 @@ class SpymemcachedTest < Test::Unit::TestCase
     assert_equal({'key' => "value"}, @ns_client.get_multi('key'))
   end
 
+  def test_timeout_zero
+    assert_raise Spymemcached::Error do
+      Spymemcached.new('localhost:11111', :timeout => 0)
+    end
+  end
+
   def test_stats
     stats = @client.stats
     assert_equal(Hash, stats.class)

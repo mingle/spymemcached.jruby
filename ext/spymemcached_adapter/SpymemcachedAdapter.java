@@ -206,6 +206,8 @@ public class SpymemcachedAdapter extends RubyObject {
         builder.setOpTimeout(timeout);
         try {
             return new MemcachedClient(builder.build(), AddrUtil.getAddresses(servers));
+        } catch (IllegalArgumentException e) {
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
         } catch (IOException e) {
             throw ruby.newIOErrorFromException(e);
         }
@@ -221,7 +223,7 @@ public class SpymemcachedAdapter extends RubyObject {
 
     private Long getTimeout(Map opts) {
         RubySymbol sym = ruby.newSymbol("timeout");
-        return (long) (((Double) opts.get(sym)) * 1000);
+        return (long) (((Number) opts.get(sym)).doubleValue() * 1000);
     }
 
     private boolean isBinary(Map opts) {
