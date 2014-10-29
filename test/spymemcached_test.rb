@@ -1,3 +1,4 @@
+# encoding: UTF-8
 require 'test_helper'
 
 class SpymemcachedTest < Test::Unit::TestCase
@@ -171,5 +172,13 @@ class SpymemcachedTest < Test::Unit::TestCase
     assert_match(/localhost/, v.keys.first)
     assert_match(/\:11211/, v.keys.first)
     assert_match(/\d\.\d+\.\d+/, v.values.first)
+  end
+
+  def test_escape_key
+    k = 'k 开' * 250
+    @client.add(k, 'v1')
+    assert_equal('v1', @client.get(k))
+    @client.set(k, 'v2')
+    assert_equal({k => 'v2'}, @client.get_multi(k))
   end
 end

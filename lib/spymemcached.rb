@@ -1,6 +1,7 @@
 require 'spymemcached-2.11.4.jar'
 require 'spymemcached_adapter.jar'
 require 'spymemcached_adapter'
+require 'digest/md5'
 
 #
 # Memcached client Spymemcached JRuby extension
@@ -9,6 +10,7 @@ class Spymemcached
   class Error < StandardError; end
   class TimeoutError < Error; end
 
+  ESCAPE_KEY_CHARS = /[\x00-\x20%\x7F-\xFF]/n
   # default options for client
   DEFAULT_OPTIONS = {
     :timeout => 0.5, # second
@@ -49,53 +51,54 @@ class Spymemcached
   end
 
   def get(key)
-    @client.get(ns(key))
+    @client.get(encode(key))
   end
   alias :[] :get
 
   def get_multi(*keys)
-    Hash[@client.get_multi(keys.map(&method(:ns))).map {|k, v| [unns(k), v]}]
+    key_map = Hash[keys.map {|k| [encode(k), k]}]
+    Hash[@client.get_multi(key_map.keys).map {|k, v| [key_map[k], v]}]
   end
 
-  def add(key, value, ttl=0, opts={})
-    @client.add(ns(key), value, ttl)
+  def add(key, value, ttl=0)
+    @client.add(encode(key), value, ttl)
   end
 
-  def set(key, value, ttl=0, opts={})
-    @client.set(ns(key), value, ttl)
+  def set(key, value, ttl=0)
+    @client.set(encode(key), value, ttl)
   end
   alias :[]= :set
 
   def cas(key, ttl=0, &block)
-    @client.cas(ns(key), ttl, &block)
+    @client.cas(encode(key), ttl, &block)
   end
 
   def replace(key, value, ttl=0)
-    @client.replace(ns(key), value, ttl)
+    @client.replace(encode(key), value, ttl)
   end
 
   def delete(key)
-    @client.delete(ns(key))
+    @client.delete(encode(key))
   end
 
   def incr(key, by=1)
-    @client.incr(ns(key), by)
+    @client.incr(encode(key), by)
   end
 
   def decr(key, by=1)
-    @client.decr(ns(key), by)
+    @client.decr(encode(key), by)
   end
 
   def append(key, value)
-    @client.append(ns(key), value)
+    @client.append(encode(key), value)
   end
 
   def prepend(key, value)
-    @client.prepend(ns(key), value)
+    @client.prepend(encode(key), value)
   end
 
   def touch(key, ttl=0)
-    @client.touch(ns(key), ttl)
+    @client.touch(encode(key), ttl)
   end
 
   def stats
@@ -124,22 +127,23 @@ class Spymemcached
   end
 
   private
-  def raw?(opts)
-    opts.is_a?(Hash) ? opts[:raw] : opts
-  end
-
-  def ns(key)
-    return key unless namespace
-     "#{namespace.call}:#{key}"
-  end
-
-  def unns(k)
-    return k unless namespace
-    @ns_size ||= namespace.call.size + 1
-    k[@ns_size..-1]
+  def encode(key)
+    escape_key(namespace ? "#{namespace.call}:#{key}" : key)
   end
 
   def namespace
     @namespace
   end
+
+  # Memcache keys are binaries. So we need to force their encoding to binary
+  # before applying the regular expression to ensure we are escaping all
+  # characters properly.
+  def escape_key(key)
+    key = key.to_s.dup
+    key = key.force_encoding(Encoding::ASCII_8BIT)
+    key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
+    key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
+    key
+  end
+
 end

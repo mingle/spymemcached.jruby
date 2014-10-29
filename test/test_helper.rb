@@ -1,4 +1,5 @@
 require 'test/unit'
+$LOAD_PATH << File.join(File.dirname(__FILE__), '..', 'lib')
 require "spymemcached"
 
 class Msg < Struct.new(:name)
