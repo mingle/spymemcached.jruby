@@ -140,8 +140,8 @@ class Spymemcached
   # characters properly.
   def escape_key(key)
     key = key.to_s.dup
-    key = key.force_encoding(Encoding::ASCII_8BIT)
-    key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.getbyte(0).to_s(16).upcase}" }
+    key = key.force_encoding(Encoding::ASCII_8BIT) if defined?(Encoding)
+    key = key.gsub(ESCAPE_KEY_CHARS){ |match| "%#{match.bytes.to_a[0].to_s(16).upcase}" }
     key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
     key
   end
