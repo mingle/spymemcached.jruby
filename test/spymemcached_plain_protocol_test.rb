@@ -74,6 +74,7 @@ class SpymemcachedPlainProtocolTest < Test::Unit::TestCase
     assert_equal(2, ret.size)
     assert_equal('v1', ret['k1'])
     assert_equal(Msg.new('v2'), ret['k2'])
+    assert_equal(ret, @client.get_multi(['k1', 'k2', 'k3']))
   end
 
   def test_cas

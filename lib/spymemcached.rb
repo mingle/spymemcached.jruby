@@ -56,7 +56,7 @@ class Spymemcached
   alias :[] :get
 
   def get_multi(*keys)
-    key_map = Hash[keys.map {|k| [encode(k), k]}]
+    key_map = Hash[keys.flatten.compact.map {|k| [encode(k), k]}]
     Hash[@client.get_multi(key_map.keys).map {|k, v| [key_map[k], v]}]
   end
 
