@@ -116,7 +116,8 @@ class Spymemcached
     @client.shutdown
   end
 
-  # compatible api
+  # compatible api with Rails 2.3 MemcacheStore
+  # ActionController::Base.cache_store = :mem_cache_store, Spymemcached.new(servers).rails23
   def rails23
     require 'spymemcached/rails23'
     Rails23.new(self)
