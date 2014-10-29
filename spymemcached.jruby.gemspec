@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name = 'spymemcached.jruby'
-  s.version = '1.0.3'
+  s.version = '1.0.4'
   s.summary = 'A JRuby extension wrapping the latest spymemcached client (v2.11.4).'
   s.description = <<-EOF
 A JRuby extension wrapping the latest spymemcached client (v2.11.4).
