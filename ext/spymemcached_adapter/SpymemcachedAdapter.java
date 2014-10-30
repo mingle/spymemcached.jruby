@@ -148,14 +148,36 @@ public class SpymemcachedAdapter extends RubyObject {
         }
     }
 
-    @JRubyMethod(required = 2)
-    public IRubyObject incr(IRubyObject key, IRubyObject by) {
-        return obj(client.asyncIncr(key.asJavaString(), integer(by)));
+    @JRubyMethod(required = 4)
+    public IRubyObject incr(IRubyObject[] args) {
+        IRubyObject key = args[0];
+        IRubyObject by = args[1];
+        IRubyObject ttl = args[2];
+        IRubyObject defaultValue = args[3];
+        try {
+            long ret = client.incr(key.asJavaString(), integer(by), integer(defaultValue), integer(ttl));
+            return JavaUtil.convertJavaToRuby(ruby, ret);
+        } catch (OperationTimeoutException e) {
+            throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
+        } catch (RuntimeException e) {
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
-    @JRubyMethod(required = 2)
-    public IRubyObject decr(IRubyObject key, IRubyObject by) {
-        return obj(client.asyncDecr(key.asJavaString(), integer(by)));
+    @JRubyMethod(required = 4)
+    public IRubyObject decr(IRubyObject[] args) {
+        IRubyObject key = args[0];
+        IRubyObject by = args[1];
+        IRubyObject ttl = args[2];
+        IRubyObject defaultValue = args[3];
+        try {
+            long ret = client.decr(key.asJavaString(), integer(by), integer(defaultValue), integer(ttl));
+            return JavaUtil.convertJavaToRuby(ruby, ret);
+        } catch (OperationTimeoutException e) {
+            throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
+        } catch (RuntimeException e) {
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 2)

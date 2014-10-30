@@ -58,6 +58,12 @@ class SpymemcachedPlainProtocolTest < Test::Unit::TestCase
 
     @client.cas('key') { '7' }
     assert_equal 8, @client.incr('key')
+
+    assert_equal 100, @client.incr('incr_key', 1, 0, 100)
+    assert_equal 100, @client.decr('decr_key', 1, 0, 100)
+
+    assert_equal 101, @client.incr('incr_key', 1, 0, 100)
+    assert_equal 99, @client.decr('decr_key', 1, 0, 100)
   end
 
   def test_fetch

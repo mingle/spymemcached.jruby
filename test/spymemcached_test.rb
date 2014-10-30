@@ -3,7 +3,7 @@ require 'test_helper'
 
 class SpymemcachedTest < Test::Unit::TestCase
   def setup
-    @client = binary_client
+    @client = plain_client
     @client.flush_all
   end
 
@@ -28,6 +28,9 @@ class SpymemcachedTest < Test::Unit::TestCase
     @client.replace('replace_key2', 'v2', 2)
 
     @client.add('touch_key1', 'v1', 2)
+
+    assert_equal 0, @client.incr('incr_key', 1, 1)
+    assert_equal 0, @client.decr('decr_key', 1, 1)
 
     sleep 0.1
 
@@ -56,6 +59,9 @@ class SpymemcachedTest < Test::Unit::TestCase
 
     assert_equal 'v1', @client.get('replace_key1')
     assert_nil @client.get('replace_key2')
+
+    assert_nil @client.get('incr_key')
+    assert_nil @client.get('decr_key')
   end
 
   def test_timeout
