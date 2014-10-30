@@ -9,7 +9,7 @@ EOF
   s.authors = ["Xiao Li"]
   s.platform = 'java'
   s.email = ['swing1979@gmail.com']
-  s.homepage = 'https://github.com/xli/spymemcached.jruby'
+  s.homepage = 'https://github.com/ThoughtWorksStudios/spymemcached.jruby'
 
   s.add_development_dependency('rake')
   s.add_development_dependency('test-unit')
