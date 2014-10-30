@@ -18,8 +18,8 @@ class SpymemcachedRails23Test < Test::Unit::TestCase
     @client.set("key2", '1')
     assert_equal({"key1" => '0', 'key2' => '1'}, @client.get_multi('key1', 'key2'))
 
-    assert_equal 1, @client.incr('key1')
-    assert_equal 0, @client.decr('key2')
+    assert_equal 1, @client.incr('key1', 1, ttl=0)
+    assert_equal 0, @client.decr('key2', 1, ttl=0)
 
     assert @client.stats.values.first
   end

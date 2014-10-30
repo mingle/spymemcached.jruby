@@ -34,11 +34,11 @@ class Spymemcached
       op(:delete, key) ? Response::DELETED : Response::NOT_FOUND
     end
 
-    def incr(key, by=1)
+    def incr(key, by=1, *args)
       op(:incr, key, by)
     end
 
-    def decr(key, by=1)
+    def decr(key, by=1, *args)
       op(:decr, key, by)
     end
 
