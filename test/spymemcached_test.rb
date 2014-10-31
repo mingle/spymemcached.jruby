@@ -195,4 +195,10 @@ class SpymemcachedTest < Test::Unit::TestCase
     @client.set(k, 'v2')
     assert_equal({k => 'v2'}, @client.get_multi(k))
   end
+
+  def test_default_servers
+    client = Spymemcached.new(nil)
+    assert client.set('key', 'value')
+    assert_equal 'value', client.get('key')
+  end
 end

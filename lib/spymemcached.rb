@@ -34,7 +34,7 @@ class Spymemcached
   #
   def initialize(servers=nil, options={})
     @servers, @options = Array(servers).join(','), DEFAULT_OPTIONS.merge(options)
-    @servers = ['localhost:11211'] if @servers.empty?
+    @servers = 'localhost:11211' if @servers.empty?
     @client = SpymemcachedAdapter.new(@servers, @options)
     @namespace = if @options[:namespace]
       @options[:namespace].is_a?(Proc) ? @options[:namespace] : lambda { @options[:namespace] }
