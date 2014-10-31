@@ -32,8 +32,9 @@ class Spymemcached
   #
   # Logger: see Spymemcached for how to turn on detail log
   #
-  def initialize(servers=['localhost:11211'], options={})
+  def initialize(servers=nil, options={})
     @servers, @options = Array(servers).join(','), DEFAULT_OPTIONS.merge(options)
+    @servers = ['localhost:11211'] if @servers.empty?
     @client = SpymemcachedAdapter.new(@servers, @options)
     @namespace = if @options[:namespace]
       @options[:namespace].is_a?(Proc) ? @options[:namespace] : lambda { @options[:namespace] }
