@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    spymemcached.jruby (1.0.7-java)
+    spymemcached.jruby (1.0.8-java)
 
 GEM
   remote: https://rubygems.org/
