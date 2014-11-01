@@ -6,7 +6,6 @@ A JRuby extension wraps the latest spymemcached client.
 Usage
 ----------------
 
-
 Start a local networked memcached server:
 
     $ memcached -p 11211
@@ -28,14 +27,15 @@ Valid +options+ are:
     [:timeout]     Time to use as the socket read timeout, seconds.  Defaults to 0.5 sec.
     [:binary]      Talks binary protocol with Memcached server. Default to true.
 
-Rails 3 & 4
+Rails 4
+--------------------
 
-    TODO
+Use [spymemcached_store](https://github.com/ThoughtWorksStudios/spymemcached_store) gem to integrate ActiveSupport cache store and spymemcached.jruby gem.
 
 Rails 2.3
+--------------------
 
     ActionController::Base.cache_store = :mem_cache_store, Spymemcached.new(servers).rails23
-
 
 Performance
 ---------------
