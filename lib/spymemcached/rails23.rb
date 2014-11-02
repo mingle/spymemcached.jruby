@@ -15,6 +15,9 @@ class Spymemcached
     end
 
     def get_multi(*args)
+      if [Hash, TrueClass, FalseClass].include?(args.last)
+        args.pop
+      end
       op(:get_multi, *args)
     end
 

@@ -24,6 +24,12 @@ class SpymemcachedRails23Test < Test::Unit::TestCase
     assert @client.stats.values.first
   end
 
+  def test_rails3_api_compatible
+    @client.set("key1", '0')
+    @client.set("key2", '1')
+    assert_equal({"key1" => '0', 'key2' => '1'}, @client.get_multi(['key1', 'key2'], :raw => true))
+  end
+
   def response
     Spymemcached::Rails23::Response
   end
