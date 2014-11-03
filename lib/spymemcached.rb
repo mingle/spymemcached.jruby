@@ -14,7 +14,8 @@ class Spymemcached
   # default options for client
   DEFAULT_OPTIONS = {
     :timeout => 0.5, # second
-    :binary => true
+    :binary => true,
+    :should_optimize => false
   }
 
   # Accepts a list of +servers+ and a list of +options+.
@@ -26,9 +27,10 @@ class Spymemcached
   #
   # Valid +options+ are:
   #
-  #   [:namespace]   Prepends this value to all keys added or retrieved.
-  #   [:timeout]     Time to use as the socket read timeout, seconds.  Defaults to 0.5 sec.
-  #   [:binary]      Talks binary protocol with Memcached server. Default to true.
+  #   [:namespace]        Prepends this value to all keys added or retrieved. Default to nil.
+  #   [:timeout]          Time to use as the socket read timeout, seconds. Default to 0.5 sec.
+  #   [:binary]           Talks binary protocol with Memcached server. Default to true.
+  #   [:should_optimize]  If true, Spymemcached low-level optimization is in effect. Default to false.
   #
   # Logger: see Spymemcached for how to turn on detail log
   #

@@ -224,6 +224,7 @@ public class SpymemcachedAdapter extends RubyObject {
         if (isBinary(opts)) {
             builder.setOpFact(new BinaryOperationFactory());
         }
+        builder.setShouldOptimize(shouldOptimize(opts));
         builder.setTranscoder(new IRubyObjectTranscoder(ruby));
         builder.setOpTimeout(timeout);
         try {
@@ -246,6 +247,10 @@ public class SpymemcachedAdapter extends RubyObject {
     private Long getTimeout(Map opts) {
         RubySymbol sym = ruby.newSymbol("timeout");
         return (long) (((Number) opts.get(sym)).doubleValue() * 1000);
+    }
+
+    private boolean shouldOptimize(Map opts) {
+        return (Boolean) opts.get(ruby.newSymbol("should_optimize"));
     }
 
     private boolean isBinary(Map opts) {

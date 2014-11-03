@@ -1,5 +1,4 @@
 ? Spymemcached specific feature exposure
   * async ops
-  * should optimize option
 * Control spymemcached log
 * circuit breaker
