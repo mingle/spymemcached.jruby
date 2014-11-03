@@ -1,6 +1,5 @@
-* API-compatible wrappers for popular Ruby memcached client libs.
-  * Rails 3 & 4 support
 ? Spymemcached specific feature exposure
   * async ops
+  * should optimize option
 * Control spymemcached log
 * circuit breaker
