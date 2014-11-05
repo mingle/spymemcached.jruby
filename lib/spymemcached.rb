@@ -63,21 +63,21 @@ class Spymemcached
     Hash[@client.get_multi(key_map.keys).map {|k, v| [key_map[k], v]}]
   end
 
-  def add(key, value, ttl=0)
-    @client.add(encode(key), value, ttl)
+  def add(key, value, ttl=0, opts={})
+    @client.add(encode(key), value, ttl, opts[:raw])
   end
 
-  def set(key, value, ttl=0)
-    @client.set(encode(key), value, ttl)
+  def set(key, value, ttl=0, opts={})
+    @client.set(encode(key), value, ttl, opts[:raw])
   end
   alias :[]= :set
 
-  def cas(key, ttl=0, &block)
-    @client.cas(encode(key), ttl, &block)
+  def cas(key, ttl=0, opts={}, &block)
+    @client.cas(encode(key), ttl, opts[:raw], &block)
   end
 
-  def replace(key, value, ttl=0)
-    @client.replace(encode(key), value, ttl)
+  def replace(key, value, ttl=0, opts={})
+    @client.replace(encode(key), value, ttl, opts[:raw])
   end
 
   def delete(key)
@@ -93,11 +93,11 @@ class Spymemcached
   end
 
   def append(key, value)
-    @client.append(encode(key), value)
+    @client.append(encode(key), value.to_s)
   end
 
   def prepend(key, value)
-    @client.prepend(encode(key), value)
+    @client.prepend(encode(key), value.to_s)
   end
 
   def touch(key, ttl=0)

@@ -25,12 +25,12 @@ class Spymemcached
       op(:get, key)
     end
 
-    def add(key, value, ttl=0, *args)
-      op(:add, key, value, ttl) ? Response::STORED : Response::NOT_STORED
+    def add(key, value, ttl=0, raw=false)
+      op(:add, key, value, ttl, opts(raw)) ? Response::STORED : Response::NOT_STORED
     end
 
-    def set(key, value, ttl=0, *args)
-      op(:set, key, value, ttl) ? Response::STORED : Response::NOT_STORED
+    def set(key, value, ttl=0, raw=false)
+      op(:set, key, value, ttl, opts(raw)) ? Response::STORED : Response::NOT_STORED
     end
 
     def delete(key, *args)
@@ -54,6 +54,10 @@ class Spymemcached
     end
 
     private
+    def opts(raw)
+      raw.is_a?(Hash) ? raw : {:raw => raw}
+    end
+
     def op(name, *args, &block)
       @client.send(name, *args, &block)
     rescue Spymemcached::Error => e

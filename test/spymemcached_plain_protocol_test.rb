@@ -39,7 +39,7 @@ class SpymemcachedPlainProtocolTest < Test::Unit::TestCase
   end
 
   def test_incr_and_decr
-    @client.add('key', '0')
+    @client.add('key', '0', 0, :raw => true)
     assert_equal 0, @client.incr('key', 0)
     @client.incr('key')
     assert_equal 1, @client.incr('key', 0)
@@ -47,16 +47,16 @@ class SpymemcachedPlainProtocolTest < Test::Unit::TestCase
     assert_equal 6, @client.incr('key', 0)
     assert_equal '6', @client.get('key')
 
-    @client.set('key', '6')
+    @client.set('key', '6', 0, :raw => true)
     @client.decr('key')
     assert_equal 5, @client.decr('key', 0)
     @client.decr('key', 3)
     assert_equal 2, @client.decr('key', 0)
 
-    @client.replace('key', '10')
+    @client.replace('key', '10', 0, :raw => true)
     assert_equal 11, @client.incr('key')
 
-    @client.cas('key') { '7' }
+    @client.cas('key', 0, :raw => true) { '7' }
     assert_equal 8, @client.incr('key')
 
     assert_equal 100, @client.incr('incr_key', 1, 0, 100)
@@ -115,13 +115,13 @@ class SpymemcachedPlainProtocolTest < Test::Unit::TestCase
   end
 
   def test_append_string
-    @client['k1'] = 'v'
+    @client.set('k1', 'v', 0, :raw => true)
     assert @client.append('k1', '1')
     assert_equal 'v1', @client['k1']
   end
 
   def test_prepend_string
-    @client['k1'] = 'v'
+    @client.set('k1', 'v', 0, :raw => true)
     assert @client.prepend('k1', '1')
     assert_equal '1v', @client['k1']
   end

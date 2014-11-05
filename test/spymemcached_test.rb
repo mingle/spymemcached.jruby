@@ -131,13 +131,14 @@ class SpymemcachedTest < Test::Unit::TestCase
     assert_equal 'v3', @client['key3']
     assert_nil @ns_client['key3']
 
-    @ns_client.append('key2', '4')
-    assert_equal 'v24', @ns_client.get('key2')
+    @ns_client.add('key5', 'v5', 0, :raw => true)
+    @ns_client.append('key5', '4')
+    assert_equal 'v54', @ns_client.get('key5')
 
-    @ns_client.prepend('key2', '4')
-    assert_equal '4v24', @ns_client.get('key2')
+    @ns_client.prepend('key5', '4')
+    assert_equal '4v54', @ns_client.get('key5')
 
-    @ns_client['key2'] = '1'
+    @ns_client.set('key2', '1', 0, :raw => true)
     assert_equal 2, @ns_client.incr('key2')
     assert_equal 1, @ns_client.decr('key2')
 
@@ -200,5 +201,11 @@ class SpymemcachedTest < Test::Unit::TestCase
     client = Spymemcached.new(nil)
     assert client.set('key', 'value')
     assert_equal 'value', client.get('key')
+  end
+
+  def test_get_set_binary_string_data
+    data = File.read(File.join(File.dirname(__FILE__), "m.png"))
+    @client.add('k', data)
+    assert_equal(data, @client.get('k'))
   end
 end

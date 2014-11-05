@@ -41,19 +41,6 @@ Use [spymemcached_store](https://github.com/ThoughtWorksStudios/spymemcached_sto
     require 'spymemcached'
     ActionController::Base.cache_store = :mem_cache_store, Spymemcached.new(servers, options).rails23
 
-## Compatibility
-
-The most important different between spymemcached.jruby and other non spymemcached backended memcache client is the support of option :raw.
-
-As Spymemcached provides mechanism to encode and decode cache data, spymemcached.jruby does marshal dump & load for Ruby object in Java except Ruby string and integer.
-
-Any Ruby String or Integer type cache data will be directly converted to Java String or Integer.
-
-Hence we don't consider :raw option in spymemcached.jruby.
-
-However, Rails cache store supports :raw option too when doing read and write on local cache.
-This behaviour is kept as I'm not sure what to do with it. I'm happy to fix it if you found anything wrong with it.
-
 ## Default behaviors
 
 Spymemcached.jruby applies:

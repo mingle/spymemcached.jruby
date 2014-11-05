@@ -99,19 +99,32 @@ public class SpymemcachedAdapter extends RubyObject {
         return obj(client.asyncGetBulk(list));
     }
 
-    @JRubyMethod(required = 3)
-    public IRubyObject add(IRubyObject key, IRubyObject value, IRubyObject ttl) {
-        return obj(client.add(key.asJavaString(), integer(ttl), preprocess(value)));
+    @JRubyMethod(required = 4)
+    public IRubyObject add(IRubyObject[] args) {
+        IRubyObject key = args[0];
+        IRubyObject value = args[1];
+        IRubyObject ttl = args[2];
+        IRubyObject raw = args[3];
+
+        return obj(client.add(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
     }
 
-    @JRubyMethod(required = 3)
-    public IRubyObject set(IRubyObject key, IRubyObject value, IRubyObject ttl) {
-        return obj(client.set(key.asJavaString(), integer(ttl), preprocess(value)));
+    @JRubyMethod(required = 4)
+    public IRubyObject set(IRubyObject[] args) {
+        IRubyObject key = args[0];
+        IRubyObject value = args[1];
+        IRubyObject ttl = args[2];
+        IRubyObject raw = args[3];
+        return obj(client.set(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
     }
 
-    @JRubyMethod(required = 3)
-    public IRubyObject replace(IRubyObject key, IRubyObject value, IRubyObject ttl) {
-        return obj(client.replace(key.asJavaString(), integer(ttl), preprocess(value)));
+    @JRubyMethod(required = 4)
+    public IRubyObject replace(IRubyObject[] args) {
+        IRubyObject key = args[0];
+        IRubyObject value = args[1];
+        IRubyObject ttl = args[2];
+        IRubyObject raw = args[3];
+        return obj(client.replace(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
     }
 
     @JRubyMethod(required = 1)
@@ -121,16 +134,16 @@ public class SpymemcachedAdapter extends RubyObject {
 
     @JRubyMethod(required = 2)
     public IRubyObject append(IRubyObject key, IRubyObject value) {
-        return obj(client.append(key.asJavaString(), preprocess(value)));
+        return obj(client.append(key.asJavaString(), value.asJavaString()));
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject prepend(IRubyObject key, IRubyObject value) {
-        return obj(client.prepend(key.asJavaString(), preprocess(value)));
+        return obj(client.prepend(key.asJavaString(), value.asJavaString()));
     }
 
-    @JRubyMethod(required = 2)
-    public IRubyObject cas(ThreadContext tc, IRubyObject key, IRubyObject ttl, Block block) {
+    @JRubyMethod(required = 3)
+    public IRubyObject cas(ThreadContext tc, IRubyObject key, IRubyObject ttl, IRubyObject raw, Block block) {
         String k = key.asJavaString();
         CASValue<Object> casValue = client.gets(k);
         if (casValue == null) {
@@ -138,7 +151,7 @@ public class SpymemcachedAdapter extends RubyObject {
         }
         long casId = casValue.getCas();
         IRubyObject value = block.call(tc);
-        CASResponse response = (CASResponse) futureGet(client.asyncCAS(k, casId, integer(ttl), preprocess(value)));
+        CASResponse response = (CASResponse) futureGet(client.asyncCAS(k, casId, integer(ttl), raw.isTrue() ? value.asJavaString() : value));
         if (response == CASResponse.OK) {
             return ruby.getTrue();
         } else if (response == CASResponse.NOT_FOUND) {
@@ -287,15 +300,4 @@ public class SpymemcachedAdapter extends RubyObject {
             throw e;
         }
     }
-
-    private Object preprocess(IRubyObject value) {
-        if (value instanceof RubyString) {
-            return value.asJavaString();
-        } else if (value instanceof RubyInteger) {
-            return ((RubyInteger) value).getLongValue();
-        } else {
-            return value;
-        }
-    }
-
 }
