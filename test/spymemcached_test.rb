@@ -29,7 +29,7 @@ class SpymemcachedTest < Test::Unit::TestCase
 
     @client.add('touch_key1', 'v1', 2)
 
-    assert_equal 0, @client.incr('incr_key', 1, 1)
+    assert_equal 1, @client.incr('incr_key', 1, 1)
     assert_equal 0, @client.decr('decr_key', 1, 1)
 
     sleep 0.1

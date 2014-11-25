@@ -39,6 +39,11 @@ class SpymemcachedPlainProtocolTest < Test::Unit::TestCase
   end
 
   def test_incr_and_decr
+    assert_equal 1, @client.incr('incr-key', 1)
+    assert_equal '1', @client.get('incr-key')
+    assert_equal 0, @client.decr('decr-key', 1)
+    assert_equal '0', @client.get('decr-key')
+
     @client.add('key', '0', 0, :raw => true)
     assert_equal 0, @client.incr('key', 0)
     @client.incr('key')

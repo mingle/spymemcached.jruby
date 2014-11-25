@@ -84,7 +84,7 @@ class Spymemcached
     @client.delete(encode(key))
   end
 
-  def incr(key, by=1, ttl=0, default=0)
+  def incr(key, by=1, ttl=0, default=1)
     @client.incr(encode(key), by, ttl, default)
   end
 
