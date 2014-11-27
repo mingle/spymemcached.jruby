@@ -53,6 +53,10 @@ class Spymemcached
       op(:stats)
     end
 
+    def shutdown
+      op(:shutdown)
+    end
+
     private
     def opts(raw)
       raw.is_a?(Hash) ? raw : {:raw => raw}

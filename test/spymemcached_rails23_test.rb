@@ -30,6 +30,10 @@ class SpymemcachedRails23Test < Test::Unit::TestCase
     assert_equal({"key1" => '0', 'key2' => '1'}, @client.get_multi(['key1', 'key2'], :raw => true))
   end
 
+  def test_shutdown
+    @client.shutdown
+  end
+
   def response
     Spymemcached::Rails23::Response
   end
