@@ -1,4 +1,9 @@
 require 'test_helper'
+unless defined?(MemCache::MemCacheError)
+  class MemCache
+    class MemCacheError < StandardError; end
+  end
+end
 
 class SpymemcachedRails23Test < Test::Unit::TestCase
   def setup
@@ -30,8 +35,12 @@ class SpymemcachedRails23Test < Test::Unit::TestCase
     assert_equal({"key1" => '0', 'key2' => '1'}, @client.get_multi(['key1', 'key2'], :raw => true))
   end
 
-  def test_shutdown
+  def test_should_raise_memcache_error_after_shutdown
+    @client.set('hello', 'world')
     @client.shutdown
+    assert_raise MemCache::MemCacheError do
+      @client.get('hello')
+    end
   end
 
   def response

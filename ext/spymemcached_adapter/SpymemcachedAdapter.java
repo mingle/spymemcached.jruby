@@ -5,6 +5,7 @@ import net.spy.memcached.transcoders.SerializingTranscoder;
 import org.jruby.*;
 import org.jruby.anno.JRubyClass;
 import org.jruby.anno.JRubyMethod;
+import org.jruby.exceptions.RaiseException;
 import org.jruby.javasupport.JavaUtil;
 import org.jruby.runtime.Block;
 import org.jruby.runtime.ThreadContext;
@@ -90,13 +91,27 @@ public class SpymemcachedAdapter extends RubyObject {
 
     @JRubyMethod(required = 1)
     public IRubyObject get(IRubyObject key) {
-        return obj(client.asyncGet(key.asJavaString()));
+        try {
+            return obj(client.asyncGet(key.asJavaString()));
+        } catch (RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 1)
     public IRubyObject get_multi(IRubyObject keys) {
         List<String> list = Arrays.asList((String[]) keys.convertToArray().toArray(new String[0]));
-        return obj(client.asyncGetBulk(list));
+        try {
+            return obj(client.asyncGetBulk(list));
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 4)
@@ -106,7 +121,14 @@ public class SpymemcachedAdapter extends RubyObject {
         IRubyObject ttl = args[2];
         IRubyObject raw = args[3];
 
-        return obj(client.add(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
+        try {
+            return obj(client.add(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 4)
@@ -115,7 +137,14 @@ public class SpymemcachedAdapter extends RubyObject {
         IRubyObject value = args[1];
         IRubyObject ttl = args[2];
         IRubyObject raw = args[3];
-        return obj(client.set(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
+        try {
+            return obj(client.set(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 4)
@@ -124,40 +153,75 @@ public class SpymemcachedAdapter extends RubyObject {
         IRubyObject value = args[1];
         IRubyObject ttl = args[2];
         IRubyObject raw = args[3];
-        return obj(client.replace(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
+        try {
+            return obj(client.replace(key.asJavaString(), integer(ttl), raw.isTrue() ? value.asJavaString() : value));
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 1)
     public IRubyObject delete(IRubyObject key) {
-        return obj(client.delete(key.asJavaString()));
+        try {
+            return obj(client.delete(key.asJavaString()));
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject append(IRubyObject key, IRubyObject value) {
-        return obj(client.append(key.asJavaString(), value.asJavaString()));
+        try {
+            return obj(client.append(key.asJavaString(), value.asJavaString()));
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject prepend(IRubyObject key, IRubyObject value) {
-        return obj(client.prepend(key.asJavaString(), value.asJavaString()));
+        try {
+            return obj(client.prepend(key.asJavaString(), value.asJavaString()));
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod(required = 3)
     public IRubyObject cas(ThreadContext tc, IRubyObject key, IRubyObject ttl, IRubyObject raw, Block block) {
         String k = key.asJavaString();
-        CASValue<Object> casValue = client.gets(k);
-        if (casValue == null) {
-            return ruby.getNil();
-        }
-        long casId = casValue.getCas();
-        IRubyObject value = block.call(tc);
-        CASResponse response = (CASResponse) futureGet(client.asyncCAS(k, casId, integer(ttl), raw.isTrue() ? value.asJavaString() : value));
-        if (response == CASResponse.OK) {
-            return ruby.getTrue();
-        } else if (response == CASResponse.NOT_FOUND) {
-            return ruby.getNil();
-        } else {
-            return ruby.getFalse();
+        try {
+            CASValue<Object> casValue = client.gets(k);
+            if (casValue == null) {
+                return ruby.getNil();
+            }
+            long casId = casValue.getCas();
+            IRubyObject value = block.call(tc);
+            CASResponse response = (CASResponse) futureGet(client.asyncCAS(k, casId, integer(ttl), raw.isTrue() ? value.asJavaString() : value));
+            if (response == CASResponse.OK) {
+                return ruby.getTrue();
+            } else if (response == CASResponse.NOT_FOUND) {
+                return ruby.getNil();
+            } else {
+                return ruby.getFalse();
+            }
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
         }
     }
 
@@ -173,6 +237,9 @@ public class SpymemcachedAdapter extends RubyObject {
         } catch (OperationTimeoutException e) {
             throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
         } catch (RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
             throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
         }
     }
@@ -189,47 +256,85 @@ public class SpymemcachedAdapter extends RubyObject {
         } catch (OperationTimeoutException e) {
             throw ruby.newRaiseException(getTimeoutError(), e.getLocalizedMessage());
         } catch (RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
             throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
         }
     }
 
     @JRubyMethod(required = 2)
     public IRubyObject touch(IRubyObject key, IRubyObject ttl) {
-        return obj(client.touch(key.asJavaString(), integer(ttl)));
+        try {
+            return obj(client.touch(key.asJavaString(), integer(ttl)));
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod
     public IRubyObject version(ThreadContext context) {
         RubyHash results = RubyHash.newHash(ruby);
-        Map<SocketAddress, String> versions = client.getVersions();
-        for(Map.Entry<SocketAddress, String> entry : versions.entrySet()) {
-            results.op_aset(context, ruby.newString(entry.getKey().toString()), ruby.newString(entry.getValue()));
+        try {
+            Map<SocketAddress, String> versions = client.getVersions();
+            for(Map.Entry<SocketAddress, String> entry : versions.entrySet()) {
+                results.op_aset(context, ruby.newString(entry.getKey().toString()), ruby.newString(entry.getValue()));
+            }
+            return results;
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
         }
-        return results;
     }
 
     @JRubyMethod
     public IRubyObject stats(ThreadContext context) {
         RubyHash results = RubyHash.newHash(ruby);
-        for(Map.Entry<SocketAddress, Map<String, String>> entry : client.getStats().entrySet()) {
-            RubyHash serverHash = RubyHash.newHash(ruby);
-            for(Map.Entry<String, String> server : entry.getValue().entrySet()) {
-                serverHash.op_aset(context, ruby.newString(server.getKey()), ruby.newString(server.getValue()));
+        try {
+            for(Map.Entry<SocketAddress, Map<String, String>> entry : client.getStats().entrySet()) {
+                RubyHash serverHash = RubyHash.newHash(ruby);
+                for(Map.Entry<String, String> server : entry.getValue().entrySet()) {
+                    serverHash.op_aset(context, ruby.newString(server.getKey()), ruby.newString(server.getValue()));
+                }
+                results.op_aset(context, ruby.newString(entry.getKey().toString()), serverHash);
             }
-            results.op_aset(context, ruby.newString(entry.getKey().toString()), serverHash);
+            return results;
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
         }
-        return results;
     }
 
     @JRubyMethod
     public IRubyObject flush_all() {
-        return obj(client.flush());
+        try {
+            return obj(client.flush());
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     @JRubyMethod
     public IRubyObject shutdown() {
-        client.shutdown();
-        return ruby.getNil();
+        try {
+            client.shutdown();
+            return ruby.getNil();
+        }catch(RuntimeException e) {
+            if (e instanceof RaiseException) {
+                throw e;
+            }
+            throw ruby.newRaiseException(getError(), e.getLocalizedMessage());
+        }
     }
 
     private MemcachedClient initClient(String servers, Map opts) {
