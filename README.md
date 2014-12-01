@@ -1,5 +1,7 @@
 # Spymemcached.jruby
 
+[Built with :yellow_heart: and :coffee: in San Francisco](http://getmingle.io)
+
 A JRuby extension wraps the latest spymemcached client.
 Fastest jruby memcached client, threadsafe.
 
