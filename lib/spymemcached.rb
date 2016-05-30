@@ -1,4 +1,4 @@
-require 'spymemcached-2.11.4.jar'
+require 'spymemcached-2.12.1.jar'
 require 'spymemcached_adapter.jar'
 require 'spymemcached_adapter'
 require 'digest/md5'
